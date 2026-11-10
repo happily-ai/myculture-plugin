@@ -6,9 +6,9 @@ support expect: preview before every change, answers only from what the tools re
 
 | Skill | Use it for |
 |---|---|
-| [`create-assessment`](skills/create-assessment/SKILL.md) | Creating, changing, publishing and inviting: preview → the user approves in a new message → confirm with the same key and token. Offers a draft without invitations; never acts before the user answers. |
-| [`answer-from-tools`](skills/answer-from-tools/SKILL.md) | Questions about MyCulture, the connection, permissions and modules, answered only from `get_myculture_overview`, `get_connection_info` and `list_assessment_sections`. Says what the connector can't do and sends the user to the app. |
-| [`read-results`](skills/read-results/SKILL.md) | Finding candidates and summarising or comparing results item by item, with exact report links and no hire/reject recommendation. |
+| [`myculture-create-assessment`](skills/myculture-create-assessment/SKILL.md) | Creating, changing, publishing and inviting: preview → the user approves in a new message → confirm with the same key and token. Offers a draft without invitations; never acts before the user answers. |
+| [`myculture-answer-from-tools`](skills/myculture-answer-from-tools/SKILL.md) | Questions about MyCulture, the connection, permissions and modules, answered only from `get_myculture_overview`, `get_connection_info` and `list_assessment_sections`. Says what the connector can't do and sends the user to the app. |
+| [`myculture-read-results`](skills/myculture-read-results/SKILL.md) | Finding candidates and summarising or comparing results item by item, with exact report links and no hire/reject recommendation. |
 
 ## Install
 

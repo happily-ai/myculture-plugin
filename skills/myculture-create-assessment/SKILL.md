@@ -1,6 +1,6 @@
 ---
-name: create-assessment
-description: "Create, change, publish or invite to a MyCulture assessment through the MyCulture connector, with a preview the user approves in a later message. Use when the user asks to create an assessment for a role, choose modules, save a draft, publish, or invite candidates, e.g. 'create a MyCulture assessment for a Sales Manager', 'add Logic Test to that assessment', 'publish it and invite anna@example.com'. Not for questions that only ask what MyCulture or a module can do (use answer-from-tools) or for reading results (use read-results)."
+name: myculture-create-assessment
+description: "Create, change, publish or invite to a MyCulture assessment through the MyCulture connector, with a preview the user approves in a later message. Use when the user asks to create an assessment for a role, choose modules, save a draft, publish, or invite candidates, e.g. 'create a MyCulture assessment for a Sales Manager', 'add Logic Test to that assessment', 'publish it and invite anna@example.com'. Not for questions that only ask what MyCulture or a module can do (use myculture-answer-from-tools) or for reading results (use myculture-read-results)."
 ---
 
 # Create an assessment with MyCulture
@@ -10,7 +10,7 @@ The user decides; you prepare. Every write goes preview → the user reads it �
 ## 1. Is this a request to create?
 
 - If the user **asks to create** ("create", "build", "set up", "make one for…"), continue below.
-- If the user **only asks** (what would an assessment for this role contain, what do I need to prepare, how long would it take), answer from the tools (see answer-from-tools) and then **offer** to create it: "Do you want me to prepare a preview?" Don't call `create_assessment` until they say yes. Having all the details is not a request to create.
+- If the user **only asks** (what would an assessment for this role contain, what do I need to prepare, how long would it take), answer from the tools (see myculture-answer-from-tools) and then **offer** to create it: "Do you want me to prepare a preview?" Don't call `create_assessment` until they say yes. Having all the details is not a request to create.
 
 ## 2. Get the preview
 

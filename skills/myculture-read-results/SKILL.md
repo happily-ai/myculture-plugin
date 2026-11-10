@@ -1,6 +1,6 @@
 ---
-name: read-results
-description: "Find candidates and read, summarise or compare their MyCulture assessment results through the MyCulture connector, without making hiring decisions. Use for 'how did Anna do', 'summarise the results for the Sales Manager assessment', 'compare these three candidates', 'who hasn't finished yet', 'send me the report link'. Not for creating assessments or inviting candidates (use create-assessment)."
+name: myculture-read-results
+description: "Find candidates and read, summarise or compare their MyCulture assessment results through the MyCulture connector, without making hiring decisions. Use for 'how did Anna do', 'summarise the results for the Sales Manager assessment', 'compare these three candidates', 'who hasn't finished yet', 'send me the report link'. Not for creating assessments or inviting candidates (use myculture-create-assessment)."
 ---
 
 # Read MyCulture results
@@ -31,4 +31,4 @@ Results inform a hiring decision; they don't make it. You report what the tools 
 
 ## Changes
 
-Reading results changes nothing. If the user then wants to invite, resend or delete an invitation, that is a write: preview first and wait for their approval (see create-assessment).
+Reading results changes nothing. If the user then wants to invite, resend or delete an invitation, that is a write: preview first and wait for their approval (see myculture-create-assessment).

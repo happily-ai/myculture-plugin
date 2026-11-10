@@ -1,6 +1,6 @@
 ---
-name: answer-from-tools
-description: "Answer questions about MyCulture, the connected MyCulture account, its permissions, and the assessment modules strictly from what the MyCulture connector's tools return. Use for 'what is MyCulture', 'which company am I connected to', 'what can this connection do', 'why can't I publish', 'which modules are there and how long do they take', 'what do I need to prepare for an assessment for this role'. Not for creating or changing assessments (use create-assessment) or reading candidate results (use read-results)."
+name: myculture-answer-from-tools
+description: "Answer questions about MyCulture, the connected MyCulture account, its permissions, and the assessment modules strictly from what the MyCulture connector's tools return. Use for 'what is MyCulture', 'which company am I connected to', 'what can this connection do', 'why can't I publish', 'which modules are there and how long do they take', 'what do I need to prepare for an assessment for this role'. Not for creating or changing assessments (use myculture-create-assessment) or reading candidate results (use myculture-read-results)."
 ---
 
 # Answer MyCulture questions from the tools
