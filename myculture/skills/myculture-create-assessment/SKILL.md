@@ -58,6 +58,7 @@ If the user asks for changes, make a new preview and stop again:
 - **Add or remove modules:** call `create_assessment` again with the preview's `build_id`, the same `idempotency_key`, and `add_sections` or `remove_sections` (section ids from `list_assessment_sections`). Values Alignment can't be removed.
 - **Different values or organisation type:** call again without `build_id`, with the role and the new `core_values` or `organization_type`.
 - **Edit a module's content:** `module_changes` with the complete new content, or `regenerate` to have MyCulture rewrite it.
+- **An assessment that's already saved as a draft** (for example "add the Logic Test to our Warehouse Supervisor draft"): don't build a new one. Find it with `list_assessments`, read it with `get_assessment`, then call `update_assessment` with its id, `expected_updated_at` set to its `updated_at`, and the full new `sections` list (or `module_changes`). Show that preview and stop; confirm only after the user approves. A published assessment's modules can't be changed here: say so and point to the MyCulture app.
 - **Invite more people:** only people the user names, with their email. If they name someone without an email ("her manager"), ask for it. Make a new preview that lists everyone; never confirm with a person the previous preview didn't show.
 
 ## 6. Confirm only after the user approves

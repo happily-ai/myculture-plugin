@@ -75,3 +75,8 @@ test('refuses to write into an existing output directory', () => {
   const out = mkdtempSync(join(tmpdir(), 'mc-exists-'));
   assert.throws(() => packageChatGpt({ outDir: out }), /already exists/);
 });
+
+test('review cases that continue an earlier chat say so', () => {
+  const cases = readJson(new URL('../review/cases.json', import.meta.url).pathname);
+  for (const i of [1, 2]) assert.match(cases.positive[i].expected_behavior, /same chat as case 1/i, `positive case ${i + 1}`);
+});

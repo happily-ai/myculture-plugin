@@ -10,13 +10,13 @@
       "description": "Approve a preview and save a draft",
       "prompt": "Looks good. Don't invite anyone yet, just save it as a draft.",
       "tools_triggered": "create_assessment",
-      "expected_behavior": "Shows a new preview without invitations and waits; after the user's next message (\"Confirm.\") it saves the draft and shares the link to view or edit it in MyCulture."
+      "expected_behavior": "Run in the same chat as case 1, after its preview. Shows a new preview without invitations and waits; after the user's next message (\"Confirm.\") it saves the draft and shares the link to view or edit it in MyCulture."
     },
     {
       "description": "Add a module to a preview",
       "prompt": "Add the Logic Test to that assessment.",
       "tools_triggered": "create_assessment",
-      "expected_behavior": "Makes a new preview that includes the Logic Test with its minutes and the updated total, and waits for approval instead of creating it."
+      "expected_behavior": "Run in the same chat as case 1 (or after any create preview). Makes a new preview that includes the Logic Test with its minutes and the updated total, and waits for approval instead of creating it."
     },
     {
       "description": "Invite a candidate to a published assessment",

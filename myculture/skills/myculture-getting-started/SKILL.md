@@ -39,9 +39,11 @@ End by asking which one they'd like, or what they're hiring for.
 
 Compare what they want with `missing_scopes`:
 
-- Creating or changing assessments needs `templates:write`.
-- Inviting candidates needs `invitations:write`.
-- Reading results needs `results:read`.
+- Seeing assessments needs `templates:read`; creating or changing them needs `templates:write`.
+- Seeing candidates and invitations needs `invitations:read`; inviting needs `invitations:write`.
+- Reading a candidate's results needs both `invitations:read` and `results:read`.
+
+If you're unsure which one a request needs, don't guess: the tool's `insufficient_scope` error names the exact permission.
 
 If one they need is missing, say so in plain words, for example "This connection can't read results yet." Then tell them how to fix it: reconnect MyCulture in their AI app's connector settings, and approve that permission. Don't offer the matching example from step 3 as if it will work, and don't look for another way to get the same data. If a tool returns `insufficient_scope`, do the same: name the permission from its message and stop.
 

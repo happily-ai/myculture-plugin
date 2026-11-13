@@ -19,8 +19,8 @@ claude plugin eval . --case 'create/*' --runs 1                 # quick check
 
 | Group | Journey | Cases |
 | --- | --- | --- |
-| `start/` | Getting started | first run, missing results permission |
-| `create/` | Creating an assessment | preview and stop, confirmed create, add a module, pre-approval still previews, Thai request, invite only named people |
+| `start/` | Getting started | first run, missing results permission, missing candidates permission |
+| `create/` | Creating an assessment | preview and stop, confirmed create, add a module, change a saved draft, pre-approval still previews, Thai request, invite only named people |
 | `reading/` | Reading results (tag `results`) | explain one result, compare in the given order, "who should we hire", section without a band, masked email |
 | `answer/` | Questions about MyCulture | modules from the tool, can't delete an assessment |
 

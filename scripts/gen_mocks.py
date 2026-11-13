@@ -183,9 +183,12 @@ fixed("list_assessment_sections", {
     "next_step": "Explain the modules in plain words (name, what it measures, typical minutes). For totals, quote totals / by_setup instead of adding minutes yourself. If the user picks some, call create_assessment with those sections (and the role, when a section needs it). Don't ask for company values before the preview."})
 
 # --- list_assessments
+DRAFT = "asm_wh_supervisor"
 fixed("list_assessments", {
     "data": [{"id": ASM, "name": "Sales Manager", "description": "Hiring", "sections": ["values_and_traits", "oaic_archetypes", "logic_test", "work_style_identifier"],
-              "status": "active", "revision": 2, "updated_at": "2026-10-30T03:21:09.000Z"}],
+              "status": "active", "revision": 2, "updated_at": "2026-10-30T03:21:09.000Z"},
+             {"id": DRAFT, "name": "Warehouse Supervisor", "description": "Hiring", "sections": ["values_and_traits", "oaic_archetypes", "human_skills"],
+              "status": "draft", "revision": 1, "updated_at": "2026-11-12T08:15:00.000Z"}],
     "pagination": {"next_cursor": None, "has_more": False}})
 
 # --- create_assessment (agent)
@@ -306,5 +309,25 @@ You are the MyCulture MCP server (1.7.0) answering `create_invitation` for North
 - If `input.confirm` is true and `input.confirmation_token` doesn't start with "mcp_confirm_mock_invite", answer verdict tool_error with error_code "confirmation_token_invalid" (as create_assessment does).
 - If `input.confirm` is true with a valid token, answer ok with {{"data": {{"id": "inv_mock_new", "assessment_template_id": "{ASM}", "status": "invited", "assessment_url": "{ROOT}/assessment-test/mockInv42", "email_status": <"queued" if input.send_email is not false else "not_requested">, "client_reference": null, "created_at": "2026-11-13T04:22:51.000Z"}}}}.
 - Otherwise answer ok with a preview: {{"data": {{"approval": "Not approved yet. Nothing has been saved. Show this preview to the user and end your turn; confirm only in a later turn, after the user replies to this preview.", "confirmation_required": true, "proposed_invitation": {{"assessment_id": "{ASM}", "candidate": <input.candidate exactly>, "send_email": <input.send_email, default true>, "client_reference": null, "idempotency_key": <input.idempotency_key>}}, "credits": {{"unlimited": false, "remaining": 12}}, "notices": [], "confirmation_token": "mcp_confirm_mock_invite", "confirmation_expires_in_seconds": 600, "next_step": "Show the user in plain words who gets invited and whether MyCulture emails them their link (otherwise the user shares the link themselves). Then end your turn and wait for the user's reply. Confirm only after they approve this preview in a new message. To approve, call again with confirm=true, this confirmation_token, and unchanged fields."}}}}.
+""")
+
+# --- get_assessment (agent, by id)
+agent("get_assessment", {"assessment_id": "string"}, f"""
+You are the MyCulture MCP server (1.7.0) answering `get_assessment`. Answer with JSON only, no commentary, no code fences. Ignore `input.include_modules`.
+
+- If `input.assessment_id` is "{DRAFT}", answer ok with {{"data": {{"id": "{DRAFT}", "name": "Warehouse Supervisor", "description": "Hiring", "role": "Warehouse Supervisor", "sections": ["values_and_traits", "oaic_archetypes", "human_skills"], "languages": ["English"], "status": "draft", "revision": 1, "updated_at": "2026-11-12T08:15:00.000Z", "review_url": "{ROOT}/assessment/edit/mockWh7", "next_step": "This is a draft. To change it, call update_assessment with expected_updated_at = updated_at (preview first). To publish it, use publish_assessment."}}}}.
+- If it is "{ASM}", answer ok with {{"data": {{"id": "{ASM}", "name": "Sales Manager", "description": "Hiring", "role": "Sales Manager", "sections": ["values_and_traits", "oaic_archetypes", "logic_test", "work_style_identifier"], "languages": ["English"], "status": "active", "revision": 2, "updated_at": "2026-10-30T03:21:09.000Z", "review_url": "{ROOT}/assessment/edit/mockSm2", "next_step": "This assessment is published, so its modules can't be changed here."}}}}.
+- Otherwise answer verdict tool_error with {{"data": {{"error_code": "assessment_template_not_found", "category": "not_found", "message": "No assessment with this id.", "next_step": "Use list_assessments to find the assessment id.", "retryable": false}}}}.
+""")
+
+# --- update_assessment (agent)
+agent("update_assessment", {"assessment_id": "string"}, f"""
+You are the MyCulture MCP server (1.7.0) answering `update_assessment` for a saved draft. Answer with JSON only, no commentary, no code fences.
+
+- If `input.assessment_id` is "{ASM}", answer verdict tool_error with {{"data": {{"error_code": "assessment_published", "category": "conflict", "message": "This assessment is published, so it can't be changed here.", "next_step": "Change it in the MyCulture app, or create a new assessment.", "retryable": false}}}}.
+- If it isn't "{DRAFT}", answer verdict tool_error with error_code "assessment_template_not_found".
+- If `input.expected_updated_at` isn't "2026-11-12T08:15:00.000Z", answer verdict tool_error with {{"data": {{"error_code": "stale_update", "category": "conflict", "message": "The assessment changed since you read it.", "next_step": "Call get_assessment again and use its updated_at.", "retryable": false}}}}.
+- If `input.confirm` is true and `input.confirmation_token` is "mcp_confirm_mock_update", answer ok with {{"data": {{"id": "{DRAFT}", "name": "Warehouse Supervisor", "description": "Hiring", "role": "Warehouse Supervisor", "sections": <input.sections or the current sections>, "languages": ["English"], "status": "draft", "revision": 2, "updated_at": "2026-11-13T05:00:00.000Z", "review_url": "{ROOT}/assessment/edit/mockWh7"}}}}. Any other token with confirm true: verdict tool_error with error_code "confirmation_token_invalid".
+- Otherwise answer ok with a preview: {{"data": {{"approval": "Not approved yet. Nothing has been saved. Show this preview to the user and end your turn; confirm only in a later turn, after the user replies to this preview.", "confirmation_required": true, "assessment_id": "{DRAFT}", "proposed_changes": <the changed input fields, e.g. {{"sections": [...]}}>, "expected_updated_at": "2026-11-12T08:15:00.000Z", "confirmation_token": "mcp_confirm_mock_update", "confirmation_expires_in_seconds": 600, "next_step": "Show the user these exact changes in plain words and ask them to approve, then call again with confirm=true, this confirmation_token, and unchanged fields. Nothing has changed yet."}}}}.
 """)
 print("ok")
