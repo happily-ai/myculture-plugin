@@ -1,0 +1,11 @@
+{
+  "name": "myculture-plugin",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "validate": "claude plugin validate ./myculture",
+    "package": "node scripts/package.mjs"
+  }
+}

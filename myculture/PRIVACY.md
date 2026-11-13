@@ -9,3 +9,5 @@ each tool call for the connected workspace. The connector masks candidate emails
 raw answers.
 
 Your assistant provider processes and may retain conversations and tool results under its own settings and terms.
+
+The plugin is published by Happily.ai, the company behind MyCulture. Full privacy policy: https://www.myculture.ai/privacy-policy. Questions: https://www.myculture.ai/contact-us.

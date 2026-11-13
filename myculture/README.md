@@ -1,39 +1,31 @@
-# MyCulture plugin (draft 0.1.0)
+# MyCulture
 
-Agent Skills for working with [MyCulture](https://myculture.ai) assessments through the MyCulture connector (MCP).
-The skills don't add tools. They tell the assistant how to use the connector's tools the way MyCulture customers and
-support expect: preview before every change, answers only from what the tools return, no hiring verdicts.
+MyCulture, by Happily.ai, helps HR teams and founders hire for culture fit. This plugin connects your assistant to MyCulture so you can build an assessment from a job title, invite candidates, and understand their results in plain language, all from the chat.
 
-| Skill | Use it for |
-|---|---|
-| [`myculture-create-assessment`](skills/myculture-create-assessment/SKILL.md) | Creating, changing, publishing and inviting: preview → the user approves in a new message → confirm with the same key and token. Offers a draft without invitations; never acts before the user answers. |
-| [`myculture-answer-from-tools`](skills/myculture-answer-from-tools/SKILL.md) | Questions about MyCulture, the connection, permissions and modules, answered only from `get_myculture_overview`, `get_connection_info` and `list_assessment_sections`. Says what the connector can't do and sends the user to the app. |
-| [`myculture-read-results`](skills/myculture-read-results/SKILL.md) | Finding candidates and summarising or comparing results item by item, with exact report links and no hire/reject recommendation. |
+## What it helps with
 
-## Install
+- **Getting started:** checks which MyCulture company you're connected to, explains what MyCulture is, and suggests three things to try.
+- **Creating an assessment:** asks for the role, builds a preview with the reason for each module and how long it takes, and waits for your approval before anything is created or anyone is invited.
+- **Reading results:** explains what each section measures, what a score means, and what to explore in an interview. It compares candidates side by side and never tells you who to hire.
+- **Questions about MyCulture:** answers about modules, your connection and its permissions using only what MyCulture returns.
 
-The plugin includes `.mcp.json` for the production connector (`https://api.myculture.ai/mcp`). Connecting asks you to
-sign in to MyCulture and approve permissions; reading is granted by default, writing and results are approved separately.
+## Try asking
 
-- **Claude Code:** `claude --plugin-dir plugins/myculture` for a local try, or install it from the organisation's plugin catalog once it is published there.
-- **Codex:** `.codex-plugin/plugin.json` points at `./skills/`.
-- **Claude.ai / Claude Desktop:** add the MyCulture connector, then the skills from the organisation's catalog.
+- "Create a culture-fit assessment for a Sales Manager role"
+- "Who has finished our latest assessment? Summarise the results"
+- "What can a MyCulture assessment include?"
 
-Not yet published anywhere. Distribution (organisation catalog or a public company repository) waits for leadership approval.
+## What it connects to and sends
 
-## Version
+The plugin contains instructions (skills) and one connector address: `https://api.myculture.ai/mcp`. It runs no programs and installs nothing else. When you connect, you sign in to MyCulture and choose the permissions to grant. Data moves only when your assistant calls a MyCulture tool for you, under that account and those permissions. Candidate emails are masked, and raw answers aren't available through the connector.
 
-The skills are written against MCP 1.5.7 (dev). Customers on staging and production still have 1.2.0, whose tool
-results have fewer fields (for example no `totals` / `by_setup` from `list_assessment_sections`). The skills tell the
-assistant to use what the tools return, so they still apply, but test them on the version customers have before release.
+You need a MyCulture company where you're an owner or admin.
 
-## For maintainers
+## Links
 
-- Home: `plugins/myculture/` in the `functions` repo, next to the MCP server it describes. Change a skill in the same
-  commit as a tool change in `functions/src/api/mcp/server.ts` that affects it. Any catalog or public copy is generated
-  from here; don't edit it by hand.
-- Don't put assessment question content here; it belongs to the MyCulture content owner.
-- Where each rule came from (eval round, owner vote) and how to measure the skills with the MCP eval (A/B full round):
-  [docs/dev/mcp/evaluation/plugin-ab-proposal.md](../../docs/dev/mcp/evaluation/plugin-ab-proposal.md).
+- Website: https://www.myculture.ai
+- Support: https://www.myculture.ai/contact-us
+- Privacy policy: https://www.myculture.ai/privacy-policy ([plugin privacy notes](PRIVACY.md))
+- Terms: https://www.myculture.ai/terms-and-conditions
 
-See [PRIVACY.md](PRIVACY.md). License: to be decided before public release.
+Published by Happily.ai under the MIT licence.

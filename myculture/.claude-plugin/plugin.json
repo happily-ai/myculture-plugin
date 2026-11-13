@@ -1,17 +1,18 @@
 {
   "name": "myculture",
-  "version": "0.1.0",
-  "description": "Work with MyCulture candidate assessments through the MyCulture connector: create assessments with a preview the user approves, answer questions about MyCulture, the connection, permissions and modules only from what the tools return, and read candidate results without making hiring decisions.",
+  "version": "0.2.0",
+  "description": "Create culture-fit assessments, invite candidates and understand their results through the MyCulture connector, with a preview you approve before anything changes and no hiring verdicts.",
   "author": {
-    "name": "MyCulture"
+    "name": "Happily.ai",
+    "url": "https://www.myculture.ai"
   },
-  "homepage": "https://myculture.ai",
+  "homepage": "https://www.myculture.ai",
+  "license": "MIT",
   "keywords": [
     "myculture",
     "assessments",
     "hiring",
     "culture fit",
     "candidate results"
-  ],
-  "displayName": "MyCulture"
+  ]
 }

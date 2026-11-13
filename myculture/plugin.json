@@ -1,0 +1,49 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "myculture",
+  "version": "0.2.0",
+  "description": "Create culture-fit assessments, invite candidates and understand their results through the MyCulture connector, with a preview you approve before anything changes and no hiring verdicts.",
+  "author": {
+    "name": "Happily.ai",
+    "url": "https://www.myculture.ai"
+  },
+  "homepage": "https://www.myculture.ai",
+  "license": "MIT",
+  "keywords": [
+    "myculture",
+    "assessments",
+    "hiring",
+    "culture fit",
+    "candidate results"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "MyCulture",
+        "shortDescription": "Culture-fit hiring assessments",
+        "longDescription": "MyCulture, by Happily.ai, helps HR teams and founders hire for culture fit. Ask your assistant to build a complete assessment from a job title, with values alignment, culture profile, acceptable behaviours, logic, work style and more, and it explains why each part was chosen. Invite candidates, then read their results in plain language: what each section measures, what a score means, and what to explore in an interview. Every change shows a preview and waits for your approval, candidate emails stay masked, and MyCulture never tells you who to hire. You need a MyCulture company where you're an owner or admin.",
+        "developerName": "Happily.ai",
+        "category": "Productivity",
+        "capabilities": [
+          "Create culture-fit assessments from a job title",
+          "Explain why each module was chosen",
+          "Invite candidates after you approve a preview",
+          "Explain candidate results in plain language",
+          "Suggest topics to explore in an interview"
+        ],
+        "websiteURL": "https://www.myculture.ai",
+        "supportURL": "https://www.myculture.ai/contact-us",
+        "privacyPolicyURL": "https://www.myculture.ai/privacy-policy",
+        "termsOfServiceURL": "https://www.myculture.ai/terms-and-conditions",
+        "defaultPrompt": [
+          "Create a culture-fit assessment for a Sales Manager role",
+          "Who has finished our latest assessment? Summarise the results",
+          "What can a MyCulture assessment include?"
+        ],
+        "brandColor": "#4C32CC",
+        "brandColorDark": "#B3A6FF"
+      },
+      "onboardingSkill": "./skills/myculture-getting-started/SKILL.md"
+    }
+  }
+}
