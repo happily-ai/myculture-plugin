@@ -41,7 +41,7 @@ test('mcp.json declares one streamable-http server with no client credentials or
   assert.equal(servers.length, 1);
   const [, s] = servers[0];
   assert.equal(s.type, 'streamable-http');
-  assert.equal(s.url, 'https://api.myculture.ai/mcp');
+  assert.equal(s.url, 'https://mcp.myculture.ai/mcp');
   assert.doesNotMatch(JSON.stringify(mcp), /clientId|clientSecret|baseScopes|headers/);
 });
 

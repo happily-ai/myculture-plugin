@@ -2,7 +2,7 @@
 
 The MyCulture plugin for Claude and ChatGPT, published by Happily.ai. One plugin folder, `myculture/`, installs in both: Claude's plugin directory reads it from the public GitHub mirror, and `scripts/package.mjs` builds the ChatGPT ZIP from the same folder.
 
-The plugin adds no tools. It connects to the MyCulture connector (`https://api.myculture.ai/mcp`) and adds skills that guide the assistant through getting started, creating assessments and reading results in plain language.
+The plugin adds no tools. It connects to the MyCulture connector (`https://mcp.myculture.ai/mcp`) and adds skills that guide the assistant through getting started, creating assessments and reading results in plain language.
 
 ## Layout
 

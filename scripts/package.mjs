@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const MCP_URL = 'https://api.myculture.ai/mcp';
+const MCP_URL = 'https://mcp.myculture.ai/mcp';
 const readJson = (p) => JSON.parse(readFileSync(p, 'utf8'));
 const writeJson = (p, v) => writeFileSync(p, JSON.stringify(v, null, 2) + '\n');
 

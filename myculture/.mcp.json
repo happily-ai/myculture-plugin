@@ -2,7 +2,7 @@
   "mcpServers": {
     "myculture": {
       "type": "http",
-      "url": "https://api.myculture.ai/mcp"
+      "url": "https://mcp.myculture.ai/mcp"
     }
   }
 }

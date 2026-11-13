@@ -36,7 +36,7 @@ test('claude .mcp.json points at the production connector', () => {
   const mcp = readJson(join(PLUGIN, '.mcp.json'));
   assert.deepEqual(Object.keys(mcp.mcpServers), ['myculture']);
   assert.equal(mcp.mcpServers.myculture.type, 'http');
-  assert.equal(mcp.mcpServers.myculture.url, 'https://api.myculture.ai/mcp');
+  assert.equal(mcp.mcpServers.myculture.url, 'https://mcp.myculture.ai/mcp');
 });
 
 test('no credentials anywhere in the plugin', () => {

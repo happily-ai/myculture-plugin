@@ -13,7 +13,7 @@ test('claude manifest', () => {
   assert.match(m.name, /^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$/);
   assert.equal(m.author.name, 'Happily.ai');
   assert.equal(m.license, 'MIT');
-  assert.equal(m.version, '0.2.0');
+  assert.equal(m.version, '0.2.1');
   assert.ok(m.description && m.description.length > 0);
 });
 

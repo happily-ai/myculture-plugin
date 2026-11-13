@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 (2026-11-13)
+
+- **Connector address** is now `https://mcp.myculture.ai/mcp`, where MCP 1.7.0 runs in production (its own function and sign-in server). It was `https://api.myculture.ai/mcp`. Both directories lock the address at approval, so this lands before submission. People who connected through the old address sign in once more.
+
 ## 0.2.0 (2026-11-13)
 
 First version from its own repo, prepared for the Claude and ChatGPT plugin directories.

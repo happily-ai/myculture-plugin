@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "myculture",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Create culture-fit assessments, invite candidates and understand their results through the MyCulture connector, with a preview you approve before anything changes and no hiring verdicts.",
   "author": {
     "name": "Happily.ai",

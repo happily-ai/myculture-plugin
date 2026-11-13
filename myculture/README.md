@@ -19,7 +19,7 @@ MyCulture, by Happily.ai, helps HR teams and founders hire for culture fit. This
 
 ## What it connects to and sends
 
-The plugin contains instructions (skills) and one connector address: `https://api.myculture.ai/mcp`. It runs no programs and installs nothing else. When you connect, you sign in to MyCulture and choose the permissions to grant. Data moves only when your assistant calls a MyCulture tool for you, under that account and those permissions. Candidate emails are masked, and raw answers aren't available through the connector.
+The plugin contains instructions (skills) and one connector address: `https://mcp.myculture.ai/mcp`. It runs no programs and installs nothing else. When you connect, you sign in to MyCulture and choose the permissions to grant. Data moves only when your assistant calls a MyCulture tool for you, under that account and those permissions. Candidate emails are masked, and raw answers aren't available through the connector.
 
 You need a MyCulture company where you're an owner or admin.
 
