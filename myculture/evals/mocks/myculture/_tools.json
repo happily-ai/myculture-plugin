@@ -1,0 +1,1638 @@
+{
+  "tools": [
+    {
+      "name": "get_connection_info",
+      "title": "Get connection info",
+      "description": "Show which MyCulture workspace and account this connection is bound to, and which permissions it has. Call this first when the user asks which account/company is connected, when an assessment or candidate the user expects cannot be found (they may be looking at a different workspace in their browser), or when a tool fails with insufficient_scope. `deployment` says which MyCulture system this is: \"production\" is the live system that real candidates use; \"dev\" and \"staging\" are test systems where nothing reaches real candidates; \"unknown\" means it could not be determined. `server` is the connector's version and build.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_myculture_overview",
+      "title": "About MyCulture",
+      "description": "What MyCulture is and what it's used for, how its assessments differ from ordinary tests, whether candidates need an account, which languages assessments support, and what this connector can and can't do. Call this for any general question about MyCulture instead of searching the web.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_assessments",
+      "title": "List assessments",
+      "description": "List this company's assessment drafts and active assessments. Use the opaque cursor to continue a long list. If the user expects an item that is not listed, call get_connection_info — the connection may be bound to a different workspace than the one open in their browser.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 25
+          },
+          "cursor": {
+            "type": "string",
+            "maxLength": 2048
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_assessment",
+      "title": "Get an assessment",
+      "description": "Get the current fields, modules, revision, and review link for one assessment before editing it. With include_modules=true it also returns module_content: what MyCulture wrote for each module (values, behaviours, culture profile, Role Skills, AI Readiness task, survey) in exactly the shape update_assessment module_changes takes. Use it before changing a draft's modules when that content isn't already in this chat, and send back each changed module whole.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "assessment_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "include_modules": {
+            "type": "boolean",
+            "default": false,
+            "description": "Also return each module's current content (module_content). Only when the user wants to see or change a module's content."
+          }
+        },
+        "required": [
+          "assessment_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_assessment_sections",
+      "title": "List assessment modules",
+      "description": "List the modules (sections) an assessment can include: what it measures, typical_minutes candidates spend (time_limit_minutes is the timer), and what it needs (requires / optional, each with the question to ask and any choices to offer). setup: none = ready to use as is; build = MyCulture writes it from the role and company values; input = built from what the user writes (custom_survey); source = must be copied from an existing assessment or set up in MyCulture. Filter with setup (e.g. [\"none\"] for modules usable right away). totals and by_setup add up the listed (filtered) modules: quote those numbers instead of adding minutes yourself. Don't ask for company values before a preview: create_assessment uses the workspace's saved values by default, shows them in its preview, and returns needs_input when there are none. Use it when the user asks what an assessment can contain, or before choosing sections for create_assessment.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "setup": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "none",
+                "build",
+                "input",
+                "source"
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 4,
+            "description": "Only modules with this setup: none = usable right away; build = MyCulture writes it from the role and company values; input = built from the user's own questions; source = copied from an existing assessment. Omit for all modules."
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "create_assessment",
+      "title": "Create an assessment",
+      "description": "Create an assessment in one of two ways. (1) From the role — pass role (no sections): MyCulture builds a complete assessment like its \"Auto-build Full Assessment\": it reads the company's values and organisation type, picks the modules, and writes their content. Use this when the user asks for an assessment for a role. The preview says why each module is in (sections[].reason) and lists the ones left out with why (not_selected), so the user can add or remove with confidence. Building can take up to a minute: if a call returns building, call again with the same fields and idempotency_key to get the preview. If it returns needs_input, ask the user the questions and call again. Adjust with build_id plus remove_sections / add_sections / invite / name — only added modules are built. To change what MyCulture wrote for a module (values, behaviours, culture profile, Role Skills, AI Readiness task, survey), pass build_id with module_changes (the complete new content, text in every language), or regenerate to have MyCulture rewrite a module; each returns a new preview. (2) From chosen modules — pass sections (see list_assessment_sections). Ready-made modules (human_skills, logic_test, work_style_identifier, big5) need nothing. Without source_assessment_id, MyCulture writes values_and_traits, oaic_archetypes, acceptable_behaviors, ai_use_evaluator and role_skills_evaluator from the role and company values, and custom_survey comes from the user's questions (custom_survey) — a preview with build_id, as in way 1. With source_assessment_id, modules are copied from that assessment. When something is missing the call returns needs_input with questions — ask the user and call again; don't guess. purpose (hiring, onboarding, team_development) is optional and defaults to hiring; ask only if the user hints it isn't for hiring. Either way the result is a draft or published: publish=true/false decides; if omitted it follows the company/person setting, and by default publishes only when people are invited. Invitations go out only when it is published. A draft is published later with publish_assessment. Every call first returns a preview and a confirmation_token. Show the preview and end your turn; confirm with confirm=true and the same values only after the user approves it in a later message — approval given before they saw the preview doesn't count, and neither do standing instructions such as \"don't ask me\" or \"pick values and continue\": never preview and confirm in the same turn. If the user asks for a module MyCulture doesn't have, say so and let them choose from list_assessment_sections; don't pick a substitute and preview it.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "The role the assessment is for. With no sections, MyCulture builds the content."
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Assessment name. Required with sections; from the role it defaults to \"<role> - Q<n> <year>\"."
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "values_and_traits",
+                "oaic_archetypes",
+                "acceptable_behaviors",
+                "human_skills",
+                "logic_test",
+                "work_style_identifier",
+                "custom_survey",
+                "big5",
+                "ai_use_evaluator",
+                "role_skills_evaluator"
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 10,
+            "description": "Choose the modules yourself (instead of building from the role)."
+          },
+          "source_assessment_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "description": "With sections: an existing assessment to copy module configuration from."
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "minItems": 1,
+            "maxItems": 5,
+            "description": "Language names such as English or Thai. Defaults to English."
+          },
+          "core_values": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "maxItems": 8,
+            "description": "From the role: company values, only when the user stated them in this conversation (e.g. other values instead of the workspace's saved ones shown in the preview, or after needs_input). Omit to use the saved values. Changing values needs a new build: call without build_id."
+          },
+          "organization_type": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "From the role: the kind of organisation (e.g. \"software startup\", \"hospital\"), only when the user stated it in this conversation — to correct the saved one shown in the preview, or after needs_input asks for it. Never guess it from the company name. Used for this assessment only; the company setting isn't changed. Omit to use the saved one. Changing it needs a new build: call without build_id."
+          },
+          "build_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "From the role: a previous preview's build_id, to adjust or confirm it without rebuilding."
+          },
+          "remove_sections": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "oaic_archetypes",
+                "acceptable_behaviors",
+                "human_skills",
+                "logic_test",
+                "work_style_identifier",
+                "big5",
+                "ai_use_evaluator",
+                "role_skills_evaluator",
+                "custom_survey"
+              ]
+            },
+            "maxItems": 9,
+            "description": "With build_id: modules the user wants left out. Values alignment can't be removed."
+          },
+          "add_sections": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "values_and_traits",
+                "oaic_archetypes",
+                "acceptable_behaviors",
+                "human_skills",
+                "logic_test",
+                "work_style_identifier",
+                "big5",
+                "ai_use_evaluator",
+                "role_skills_evaluator",
+                "custom_survey"
+              ]
+            },
+            "maxItems": 10,
+            "description": "With build_id: modules to add to the preview; only these are built (custom_survey needs custom_survey)."
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "hiring",
+              "onboarding",
+              "team_development"
+            ],
+            "description": "What the assessment is for. Defaults to hiring; set it only when the user says otherwise."
+          },
+          "custom_survey": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000
+              },
+              "questions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "open-ended",
+                        "multiple-choice",
+                        "multiple-select"
+                      ]
+                    },
+                    "question": {
+                      "type": "string",
+                      "maxLength": 1000
+                    },
+                    "description": {
+                      "type": "string",
+                      "maxLength": 1000
+                    },
+                    "options": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "maxLength": 300
+                      },
+                      "maxItems": 20,
+                      "description": "multiple-choice: 2-10 options; multiple-select: 2-20; open-ended: none."
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "question"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 20
+              }
+            },
+            "required": [
+              "title",
+              "description",
+              "questions"
+            ],
+            "additionalProperties": false,
+            "description": "The user's own survey for custom_survey: title, description, 1-20 questions. Only what the user wrote or approved."
+          },
+          "module_changes": {
+            "type": "object",
+            "properties": {
+              "company_values": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "maxItems": 20,
+                "description": "2-8 value names. Re-matches the values to the value cards only; the preview then says which other modules were written for the old values."
+              },
+              "acceptable_behaviors": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string",
+                        "maxLength": 4000
+                      },
+                      "description": "Text in every language of the assessment, keyed by language name, e.g. {\"English\": \"...\", \"Thai\": \"...\"}. You write the translations."
+                    },
+                    "rating": {
+                      "type": "number",
+                      "description": "0-4, the scale MyCulture uses; keep the current rating unless the user changes it."
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "rating"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 50,
+                "description": "1-12 behaviours: the whole new list (start from acceptable_behaviors_detail in the preview, or module_content from get_assessment include_modules=true)."
+              },
+              "culture_profile": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "scenario": {
+                      "type": "string",
+                      "enum": [
+                        "dominant_characteristics",
+                        "organizational_leadership",
+                        "management_of_employees",
+                        "organization_glue",
+                        "strategic_emphases",
+                        "criteria_of_success"
+                      ]
+                    },
+                    "weights": {
+                      "type": "object",
+                      "properties": {
+                        "collaborate": {
+                          "type": "number"
+                        },
+                        "create": {
+                          "type": "number"
+                        },
+                        "compete": {
+                          "type": "number"
+                        },
+                        "control": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "collaborate",
+                        "create",
+                        "compete",
+                        "control"
+                      ],
+                      "additionalProperties": false,
+                      "description": "Whole numbers adding up to 100, as in MyCulture's culture setup."
+                    }
+                  },
+                  "required": [
+                    "scenario",
+                    "weights"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 12,
+                "description": "Every scenario once (start from culture_profile in the preview, or module_content from get_assessment include_modules=true)."
+              },
+              "role_skills": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "maxLength": 500
+                    },
+                    "description": {
+                      "type": "string",
+                      "maxLength": 2000
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "description"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 30,
+                "description": "1-10 skills. The work task becomes MyCulture's standard task for these skills."
+              },
+              "ai_readiness_task": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "$ref": "#/properties/module_changes/properties/acceptable_behaviors/items/properties/text"
+                  },
+                  "your_task": {
+                    "$ref": "#/properties/module_changes/properties/acceptable_behaviors/items/properties/text"
+                  }
+                },
+                "required": [
+                  "title",
+                  "your_task"
+                ],
+                "additionalProperties": false
+              },
+              "custom_survey": {
+                "$ref": "#/properties/custom_survey",
+                "description": "The whole survey, as for custom_survey."
+              }
+            },
+            "additionalProperties": false,
+            "description": "Change what MyCulture wrote for a module. Each key holds that module's complete new content, not a diff; text is given for every language of the assessment. Only what the user asked for or approved."
+          },
+          "regenerate": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "values_and_traits",
+                "oaic_archetypes",
+                "acceptable_behaviors",
+                "ai_use_evaluator",
+                "role_skills_evaluator"
+              ]
+            },
+            "maxItems": 5,
+            "description": "With build_id: modules MyCulture should write again from the current role, values and organisation type (discards changes made to them). Can return building, like a build."
+          },
+          "invite": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "maxLength": 320
+                },
+                "first_name": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "last_name": {
+                  "type": "string",
+                  "maxLength": 100
+                }
+              },
+              "required": [
+                "email"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 50,
+            "description": "People to invite once it's published. The user may invite themselves to try it."
+          },
+          "send_email": {
+            "type": "boolean",
+            "default": true
+          },
+          "publish": {
+            "type": "boolean",
+            "description": "true = publish now, false = keep a draft. Omit to follow the setting (default: publish only when inviting). If the company's setting is draft, it is always saved as a draft and nobody is invited until it is published."
+          },
+          "idempotency_key": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128,
+            "description": "A new unique value for each new assessment (add a random part). MyCulture remembers keys for this connection across chats; reuse a key only to pick up, adjust or confirm the same preview."
+          },
+          "confirm": {
+            "type": "boolean",
+            "default": false,
+            "description": "Must be true only after the user saw the exact preview and approved it in a later message. \"Invite X and confirm\" in the request, or a standing \"don't ask me\", is not approval of a preview they haven't seen."
+          },
+          "confirmation_token": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "One-use token returned by the preview call for these exact choices."
+          }
+        },
+        "required": [
+          "idempotency_key"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "update_assessment",
+      "title": "Update an assessment",
+      "description": "Patch allowlisted assessment fields after reading the latest record. expected_updated_at prevents overwriting a newer human or assistant edit. On a draft, module_changes changes what a module contains (values, behaviours, culture profile, Role Skills, AI Readiness task, survey): the complete new content, with text in every language of the assessment. Published assessments are edited in MyCulture.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "assessment_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "expected_updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "values_and_traits",
+                "oaic_archetypes",
+                "acceptable_behaviors",
+                "human_skills",
+                "logic_test",
+                "work_style_identifier",
+                "custom_survey",
+                "big5",
+                "ai_use_evaluator",
+                "role_skills_evaluator"
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 10
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "minItems": 1,
+            "maxItems": 5
+          },
+          "module_changes": {
+            "type": "object",
+            "properties": {
+              "company_values": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "maxItems": 20,
+                "description": "2-8 value names. Re-matches the values to the value cards only; the preview then says which other modules were written for the old values."
+              },
+              "acceptable_behaviors": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string",
+                        "maxLength": 4000
+                      },
+                      "description": "Text in every language of the assessment, keyed by language name, e.g. {\"English\": \"...\", \"Thai\": \"...\"}. You write the translations."
+                    },
+                    "rating": {
+                      "type": "number",
+                      "description": "0-4, the scale MyCulture uses; keep the current rating unless the user changes it."
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "rating"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 50,
+                "description": "1-12 behaviours: the whole new list (start from acceptable_behaviors_detail in the preview, or module_content from get_assessment include_modules=true)."
+              },
+              "culture_profile": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "scenario": {
+                      "type": "string",
+                      "enum": [
+                        "dominant_characteristics",
+                        "organizational_leadership",
+                        "management_of_employees",
+                        "organization_glue",
+                        "strategic_emphases",
+                        "criteria_of_success"
+                      ]
+                    },
+                    "weights": {
+                      "type": "object",
+                      "properties": {
+                        "collaborate": {
+                          "type": "number"
+                        },
+                        "create": {
+                          "type": "number"
+                        },
+                        "compete": {
+                          "type": "number"
+                        },
+                        "control": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "collaborate",
+                        "create",
+                        "compete",
+                        "control"
+                      ],
+                      "additionalProperties": false,
+                      "description": "Whole numbers adding up to 100, as in MyCulture's culture setup."
+                    }
+                  },
+                  "required": [
+                    "scenario",
+                    "weights"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 12,
+                "description": "Every scenario once (start from culture_profile in the preview, or module_content from get_assessment include_modules=true)."
+              },
+              "role_skills": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "maxLength": 500
+                    },
+                    "description": {
+                      "type": "string",
+                      "maxLength": 2000
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "description"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 30,
+                "description": "1-10 skills. The work task becomes MyCulture's standard task for these skills."
+              },
+              "ai_readiness_task": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "$ref": "#/properties/module_changes/properties/acceptable_behaviors/items/properties/text"
+                  },
+                  "your_task": {
+                    "$ref": "#/properties/module_changes/properties/acceptable_behaviors/items/properties/text"
+                  }
+                },
+                "required": [
+                  "title",
+                  "your_task"
+                ],
+                "additionalProperties": false
+              },
+              "custom_survey": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "questions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "open-ended",
+                            "multiple-choice",
+                            "multiple-select"
+                          ]
+                        },
+                        "question": {
+                          "type": "string",
+                          "maxLength": 1000
+                        },
+                        "description": {
+                          "type": "string",
+                          "maxLength": 1000
+                        },
+                        "options": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "maxLength": 300
+                          },
+                          "maxItems": 20,
+                          "description": "multiple-choice: 2-10 options; multiple-select: 2-20; open-ended: none."
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "question"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "maxItems": 20
+                  }
+                },
+                "required": [
+                  "title",
+                  "description",
+                  "questions"
+                ],
+                "additionalProperties": false,
+                "description": "The whole survey, as for custom_survey."
+              }
+            },
+            "additionalProperties": false,
+            "description": "Drafts only: change what a module contains. Each key holds that module's complete new content, text in every language of the assessment. Not with sections or languages in the same call."
+          },
+          "idempotency_key": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128
+          },
+          "confirm": {
+            "type": "boolean",
+            "default": false,
+            "description": "Must be true only after the user approves the exact changes."
+          },
+          "confirmation_token": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "One-use token returned by the preview call for these exact changes."
+          }
+        },
+        "required": [
+          "assessment_id",
+          "expected_updated_at",
+          "idempotency_key"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "publish_assessment",
+      "title": "Publish an assessment",
+      "description": "Activate a reviewed draft so candidates can be invited. Publishing is the explicit human approval step: preview first, get the user's approval, then confirm. Calling with confirm=false is always safe: it only returns a preview and changes nothing. When the user asks to publish, call it with confirm=false first and show that preview, even if they said not to show anything and even if you have doubts — raise the doubts together with the preview, then wait for approval in a later message. If the company requires it, the preview says it emailed a confirmation code to the person who connected MyCulture; then confirm=true also needs that code (email_code), which only the user can read and type to you. Never guess or invent it. expected_updated_at prevents publishing a draft that changed after it was read.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "assessment_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "expected_updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128
+          },
+          "confirm": {
+            "type": "boolean",
+            "default": false,
+            "description": "Must be true only after the user approves publishing this exact draft."
+          },
+          "confirmation_token": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "One-use token returned by the preview call for this exact draft."
+          },
+          "email_code": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "Only when the preview says a confirmation code was emailed: with confirm=true, the code the user read in that email and typed to you. Never guess it. Leave it out otherwise."
+          }
+        },
+        "required": [
+          "assessment_id",
+          "expected_updated_at",
+          "idempotency_key"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "search_candidates",
+      "title": "Search candidates",
+      "description": "Find company candidates by name, email, external ID, assessment, or status. Returns masked email and stable candidate IDs. Completed rows include report_view_url — use that exact link for reports; never invent URLs. If the user expects an item that is not listed, call get_connection_info — the connection may be bound to a different workspace than the one open in their browser.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "assessment_id": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "invited",
+              "in_progress",
+              "completed",
+              "deleted",
+              "expired"
+            ]
+          },
+          "cursor": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 25
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_candidate_result",
+      "title": "Get a candidate result",
+      "description": "Get one candidate's result (stable candidate_id) and what it means. interpretation explains each section in plain words: what it measures, its band (High, Moderate or Low, with what that means) and areas to explore in an interview. MyCulture measures culture fit, not a pass/fail technical test, and never gives a hire or reject verdict. Returns report_view_url for the MyCulture employer report: share that URL exactly; do not build report links from candidate_id.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "th",
+              "es",
+              "fr",
+              "pt",
+              "ms"
+            ],
+            "description": "The user's language for interpretation (en, th, es, fr, pt, ms). Leave out to use the assessment's language."
+          }
+        },
+        "required": [
+          "candidate_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "compare_candidates",
+      "title": "Compare candidate evidence",
+      "description": "Put 2–10 candidates' results side by side, with each one's bands per section and what each section measures. Differences are areas to explore in each interview: this never ranks people or gives a hire or reject recommendation. Each candidate has a report_view_url to share exactly.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "candidate_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "minItems": 2,
+            "maxItems": 10
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "th",
+              "es",
+              "fr",
+              "pt",
+              "ms"
+            ],
+            "description": "The user's language for interpretation (en, th, es, fr, pt, ms). Leave out to use the assessment's language."
+          }
+        },
+        "required": [
+          "candidate_ids"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "analyze_assessment_results",
+      "title": "Analyze assessment results",
+      "description": "Summarise the completed results of one assessment: averages and missing data, and per section what it measures and how many candidates are High, Moderate or Low. These are patterns across candidates, not a hiring recommendation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "assessment_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200,
+            "default": 100
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "th",
+              "es",
+              "fr",
+              "pt",
+              "ms"
+            ],
+            "description": "The user's language for interpretation (en, th, es, fr, pt, ms). Leave out to use the assessment's language."
+          }
+        },
+        "required": [
+          "assessment_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_assessment_results",
+      "title": "List assessment results",
+      "description": "List completed results for this company, newest first, with each row's bands per section (interpretation) and one guide to what each section measures and what its bands mean. Rows use stable candidate IDs and a report_view_url; raw answers, transcripts, and prompts are excluded. For what one result means, call get_candidate_result.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "client_reference": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "candidate_external_id": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "cursor": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 25
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "th",
+              "es",
+              "fr",
+              "pt",
+              "ms"
+            ],
+            "description": "The user's language for interpretation (en, th, es, fr, pt, ms). Leave out to use the assessment's language."
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "create_invitation",
+      "title": "Invite a candidate",
+      "description": "Invite one candidate to a published assessment and get their unique assessment link. Drafts must be published first. Set send_email=false when the user will deliver the link themselves.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "assessment_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "candidate": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "format": "email",
+                "maxLength": 320
+              },
+              "first_name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "last_name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "external_id": {
+                "type": "string",
+                "maxLength": 128
+              }
+            },
+            "required": [
+              "email",
+              "first_name",
+              "last_name"
+            ],
+            "additionalProperties": false
+          },
+          "send_email": {
+            "type": "boolean",
+            "default": true
+          },
+          "client_reference": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "idempotency_key": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128
+          },
+          "confirm": {
+            "type": "boolean",
+            "default": false,
+            "description": "Must be true only after the user approves the exact invitation."
+          },
+          "confirmation_token": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "One-use token returned by the preview call for these exact fields."
+          }
+        },
+        "required": [
+          "assessment_id",
+          "candidate",
+          "idempotency_key"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_invitations",
+      "title": "List invitations",
+      "description": "List this company's assessment invitations, newest first. Candidate emails are masked; filter by status, client reference, or candidate external ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "invited",
+              "in_progress",
+              "completed",
+              "deleted",
+              "expired"
+            ]
+          },
+          "client_reference": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "candidate_external_id": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "cursor": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 25
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_invitation",
+      "title": "Get an invitation",
+      "description": "Get one invitation's current status, assessment link, and email delivery state. The candidate email is masked.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "invitation_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "invitation_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "delete_invitation",
+      "title": "Delete an invitation",
+      "description": "Remove a candidate invitation the same way Delete works in MyCulture: delete the assessment record and route so the candidate disappears from the list. The link stops working immediately.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "invitation_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "confirm": {
+            "type": "boolean",
+            "default": false,
+            "description": "Must be true only after the user approves deleting this invitation."
+          },
+          "confirmation_token": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "One-use token returned by the preview call for this invitation."
+          }
+        },
+        "required": [
+          "invitation_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "resend_invitation_email",
+      "title": "Resend an invitation email",
+      "description": "Queue the invitation email again for an open invitation. Use when the candidate did not receive or lost the original email.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "invitation_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "confirm": {
+            "type": "boolean",
+            "default": false,
+            "description": "Must be true only after the user approves resending this email."
+          },
+          "confirmation_token": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "One-use token returned by the preview call for this invitation."
+          }
+        },
+        "required": [
+          "invitation_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_webhook_endpoints",
+      "title": "List webhook endpoints",
+      "description": "List this company's webhook endpoints with their subscribed events and status. Signing secrets are never included.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_webhook_deliveries",
+      "title": "List webhook deliveries",
+      "description": "List recent webhook delivery attempts with status, attempts, and errors. Filter by endpoint or delivery status.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "endpoint_id": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 25
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "create_webhook_endpoint",
+      "title": "Create a webhook endpoint",
+      "description": "Register an HTTPS endpoint for this company's assessment and invitation events. The signing secret is returned once; the user must store it in their server-side secret manager immediately.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 250
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "minItems": 1,
+            "maxItems": 30,
+            "description": "Event types to subscribe to. Omit to subscribe to every supported event."
+          },
+          "confirm": {
+            "type": "boolean",
+            "default": false,
+            "description": "Must be true only after the user approves the exact endpoint."
+          },
+          "confirmation_token": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "One-use token returned by the preview call for these exact fields."
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "update_webhook_endpoint",
+      "title": "Update a webhook endpoint",
+      "description": "Change a webhook endpoint's URL, description, status, or subscribed events.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "endpoint_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "url": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 250
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "disabled"
+            ]
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "minItems": 1,
+            "maxItems": 30
+          },
+          "confirm": {
+            "type": "boolean",
+            "default": false,
+            "description": "Must be true only after the user approves the exact changes."
+          },
+          "confirmation_token": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "One-use token returned by the preview call for these exact changes."
+          }
+        },
+        "required": [
+          "endpoint_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "delete_webhook_endpoint",
+      "title": "Delete a webhook endpoint",
+      "description": "Disable a webhook endpoint so it stops receiving events.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "endpoint_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "confirm": {
+            "type": "boolean",
+            "default": false,
+            "description": "Must be true only after the user approves deleting this endpoint."
+          },
+          "confirmation_token": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "One-use token returned by the preview call for this endpoint."
+          }
+        },
+        "required": [
+          "endpoint_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "rotate_webhook_secret",
+      "title": "Rotate a webhook signing secret",
+      "description": "Replace a webhook endpoint's signing secret. The old secret stops working immediately; the new one is returned once and must be stored server-side right away.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "endpoint_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "confirm": {
+            "type": "boolean",
+            "default": false,
+            "description": "Must be true only after the user approves rotating this secret."
+          },
+          "confirmation_token": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "One-use token returned by the preview call for this endpoint."
+          }
+        },
+        "required": [
+          "endpoint_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "test_webhook_delivery",
+      "title": "Send a test webhook delivery",
+      "description": "Queue a synthetic assessment.result_ready test event to one endpoint to verify its integration.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "endpoint_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "confirm": {
+            "type": "boolean",
+            "default": false,
+            "description": "Must be true only after the user approves sending the test event."
+          },
+          "confirmation_token": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "One-use token returned by the preview call for this endpoint."
+          }
+        },
+        "required": [
+          "endpoint_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "replay_webhook_delivery",
+      "title": "Replay a webhook delivery",
+      "description": "Queue a failed or delivered webhook delivery to be sent again to its endpoint.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "delivery_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "confirm": {
+            "type": "boolean",
+            "default": false,
+            "description": "Must be true only after the user approves replaying this delivery."
+          },
+          "confirmation_token": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "One-use token returned by the preview call for this delivery."
+          }
+        },
+        "required": [
+          "delivery_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    }
+  ]
+}
