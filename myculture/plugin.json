@@ -41,7 +41,11 @@
           "What can a MyCulture assessment include?"
         ],
         "brandColor": "#4C32CC",
-        "brandColorDark": "#B3A6FF"
+        "brandColorDark": "#B3A6FF",
+        "composerIcon": "./assets/icon.png",
+        "composerIconDark": "./assets/icon-dark.png",
+        "logo": "./assets/logo.png",
+        "logoDark": "./assets/logo-dark.png"
       },
       "onboardingSkill": "./skills/myculture-getting-started/SKILL.md"
     }

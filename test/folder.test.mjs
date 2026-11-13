@@ -47,3 +47,16 @@ test('no credentials anywhere in the plugin', () => {
     assert.doesNotMatch(text, /mc_(live|test)_/, f);
   }
 });
+
+test('icon and logo files exist, are PNG, and record their source', () => {
+  const i = readJson(join(PLUGIN, 'plugin.json')).extensions['com.openai'].interface;
+  for (const key of ['composerIcon', 'composerIconDark', 'logo', 'logoDark']) {
+    assert.ok(i[key], `${key} set`);
+    const bytes = readFileSync(join(PLUGIN, i[key]));
+    assert.deepEqual([...bytes.subarray(0, 4)], [0x89, 0x50, 0x4e, 0x47], `${key} is PNG`);
+  }
+  assert.ok(readFileSync(join(PLUGIN, i.composerIcon)).length < 10240, 'composer icon under 10 KB');
+  const source = readFileSync(join(PLUGIN, 'assets/SOURCE.md'), 'utf8');
+  assert.match(source, /Happily-Assessment\/src\/assets\/image\/logo_myculture\.svg/);
+  assert.match(source, /Approval:/);
+});

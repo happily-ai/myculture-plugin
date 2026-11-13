@@ -1,5 +1,7 @@
 # MyCulture
 
+![MyCulture](assets/icon.png)
+
 MyCulture, by Happily.ai, helps HR teams and founders hire for culture fit. This plugin connects your assistant to MyCulture so you can build an assessment from a job title, invite candidates, and understand their results in plain language, all from the chat.
 
 ## What it helps with
