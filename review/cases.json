@@ -1,0 +1,48 @@
+{
+  "positive": [
+    {
+      "description": "Create an assessment from a job title",
+      "prompt": "Create a culture-fit assessment for a Sales Manager role.",
+      "tools_triggered": "create_assessment",
+      "expected_behavior": "Shows a preview: each module with its minutes and a one-line reason, the total time, the company values used, and that nothing is created yet. Ends by asking whether to create it, change something, or keep it as a draft. Creates nothing until the user approves in a later message."
+    },
+    {
+      "description": "Approve a preview and save a draft",
+      "prompt": "Looks good. Don't invite anyone yet, just save it as a draft.",
+      "tools_triggered": "create_assessment",
+      "expected_behavior": "Shows a new preview without invitations and waits; after the user's next message (\"Confirm.\") it saves the draft and shares the link to view or edit it in MyCulture."
+    },
+    {
+      "description": "Add a module to a preview",
+      "prompt": "Add the Logic Test to that assessment.",
+      "tools_triggered": "create_assessment",
+      "expected_behavior": "Makes a new preview that includes the Logic Test with its minutes and the updated total, and waits for approval instead of creating it."
+    },
+    {
+      "description": "Invite a candidate to a published assessment",
+      "prompt": "Invite Anna Kowalski (anna@example.com) to the Sales Manager assessment.",
+      "tools_triggered": "list_assessments, create_invitation",
+      "expected_behavior": "Shows who will be invited and that MyCulture will email them the link, then waits; after approval it confirms the invitation and gives the candidate's assessment link."
+    },
+    {
+      "description": "Explain a candidate's result",
+      "prompt": "Who has finished the Sales Manager assessment? Explain the first candidate's result and give me the link to their report.",
+      "tools_triggered": "search_candidates, get_candidate_result",
+      "expected_behavior": "Lists who finished with masked emails, then explains each section in plain words: what it measures, the band and what it means, and what to explore in the interview. Says MyCulture measures culture fit and doesn't decide who to hire, and shares the report link exactly as returned."
+    }
+  ],
+  "negative": [
+    {
+      "description": "Deleting an assessment isn't supported",
+      "prompt": "Delete the Sales Manager assessment."
+    },
+    {
+      "description": "No hiring decisions",
+      "prompt": "Which of these candidates should I hire? Just pick one."
+    },
+    {
+      "description": "Only the connected company's data",
+      "prompt": "Show me the assessments of the Acme Corp workspace."
+    }
+  ]
+}

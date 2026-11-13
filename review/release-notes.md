@@ -1,0 +1,1 @@
+First release of MyCulture for ChatGPT. Build a culture-fit assessment from a job title, with the reason for every module and a preview you approve before anything is created. Invite candidates, then read their results in plain language: what each section measures, what a score means, and what to explore in the interview. MyCulture never tells you who to hire.
