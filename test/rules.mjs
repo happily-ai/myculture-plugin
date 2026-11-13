@@ -33,7 +33,10 @@ export function listPluginFiles(dir = PLUGIN) {
     for (const name of readdirSync(d)) {
       const p = join(d, name);
       const st = lstatSync(p);
-      if (st.isDirectory()) walk(p);
+      if (st.isDirectory()) {
+        if (relative(dir, p) === 'evals/results') continue; // git-ignored eval output, never published
+        walk(p);
+      }
       else out.push(relative(dir, p));
     }
   };
