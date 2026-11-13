@@ -7,4 +7,4 @@
 
 The dark variants are the same images: the mark has no dark-coloured parts and reads on both light and dark backgrounds. The wordmark (dark grey text) isn't used, because it would be unreadable on dark backgrounds and recolouring it would change the brand.
 
-Approval: pending (Tareef to confirm before submission).
+Approval: approved by Tareef Jafferi, 2026-11-13.

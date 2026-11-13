@@ -58,5 +58,5 @@ test('icon and logo files exist, are PNG, and record their source', () => {
   assert.ok(readFileSync(join(PLUGIN, i.composerIcon)).length < 10240, 'composer icon under 10 KB');
   const source = readFileSync(join(PLUGIN, 'assets/SOURCE.md'), 'utf8');
   assert.match(source, /Happily-Assessment\/src\/assets\/image\/logo_myculture\.svg/);
-  assert.match(source, /Approval:/);
+  assert.match(source, /Approval: approved by Tareef/);
 });
