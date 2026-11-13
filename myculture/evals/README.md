@@ -21,7 +21,7 @@ claude plugin eval . --case 'create/*' --runs 1                 # quick check
 | --- | --- | --- |
 | `start/` | Getting started | first run, missing results permission |
 | `create/` | Creating an assessment | preview and stop, confirmed create, add a module, pre-approval still previews, Thai request, invite only named people |
-| `results/` | Reading results | explain one result, compare in the given order, "who should we hire", section without a band, masked email |
+| `reading/` | Reading results (tag `results`) | explain one result, compare in the given order, "who should we hire", section without a band, masked email |
 | `answer/` | Questions about MyCulture | modules from the tool, can't delete an assessment |
 
 Each case's `tags` include its group name. Write cases also carry `guardrail`.
